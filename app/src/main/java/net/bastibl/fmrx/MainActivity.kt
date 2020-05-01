@@ -1,4 +1,4 @@
-package org.gnuradio.fmrx
+package net.bastibl.fmrx
 
 import android.Manifest
 import android.annotation.SuppressLint

@@ -41,25 +41,13 @@ std::vector<float> taps{
 
 extern "C"
 JNIEXPORT jobject JNICALL
-        Java_org_gnuradio_fmrx_MainActivity_fgInit(JNIEnv * env, jobject thiz, int fd, jstring usbfsPath) {
+        Java_net_bastibl_fmrx_MainActivity_fgInit(JNIEnv * env, jobject thiz, int fd, jstring usbfsPath) {
 
     setenv("VOLK_CONFIGPATH", getenv("EXTERNAL_STORAGE"), 1);
     setenv("GR_CONF_CONTROLPORT_ON", "true", 1);
 
-//    const char *usbfs_path = env->GetStringUTFChars(usbfsPath, NULL);
-//    std::stringstream args;
-//    args << "bbl=foo,type=b200,fd=" << fd << ",usbfs_path=" << usbfs_path;
-//    GR_INFO("fg", boost::str(boost::format("Using UHD args=%1%") % args.str()));
-//
-//    ::uhd::stream_args_t stream_args;
-//    stream_args.cpu_format = "fc32";
-//    stream_args.otw_format = "sc16";
-//
-//    // Declare our GNU Radio blocks
-//    gr::uhd::usrp_source::sptr src;
 
     // Declare our GNU Radio blocks
-    osmosdr::source::sptr src;
     gr::filter::freq_xlating_fir_filter_ccf::sptr xlat;
     gr::filter::pfb_arb_resampler_ccf::sptr arb;
     gr::filter::fir_filter_ccf::sptr chan_filt;
@@ -82,12 +70,26 @@ JNIEXPORT jobject JNICALL
     float audio_rate = samp_rate / resamp;
 
     tb = gr::make_top_block("fg");
+
+    // Declare our GNU Radio blocks
+//    gr::uhd::usrp_source::sptr src;
+//
+//    const char *usbfs_path = env->GetStringUTFChars(usbfsPath, NULL);
+//    std::stringstream args;
+//    args << "bbl=foo,type=b200,fd=" << fd << ",usbfs_path=" << usbfs_path;
+//    GR_INFO("fg", boost::str(boost::format("Using UHD args=%1%") % args.str()));
+//
+//    ::uhd::stream_args_t stream_args;
+//    stream_args.cpu_format = "fc32";
+//    stream_args.otw_format = "sc16";
+//
 //    src = gr::uhd::usrp_source::make(args.str(), stream_args);
 //    src->set_samp_rate(2e6);
 //    src->set_center_freq(96.8e6);
 //    src->set_normalized_gain(.8);
 //    src->set_antenna("TX/RX");
 
+    osmosdr::source::sptr src;
     std::stringstream ss;
     //ss << "hackrf=0,fd=" << fd << ",usbfs=" << env->GetStringUTFChars(usbfsPath, NULL);
     ss << "rtl=0,fd=" << fd << ",usbfs=" << env->GetStringUTFChars(usbfsPath, NULL);
@@ -118,21 +120,6 @@ JNIEXPORT jobject JNICALL
     tb->connect(demod, 0, audio_filt, 0);
     tb->connect(audio_filt, 0, snk, 0);
 
-//    tb = gr::make_top_block("fg");
-//
-//    gr::analog::sig_source_f::sptr src;
-//    gr::fft::ctrlport_probe_psd::sptr probe;
-//    gr::blocks::float_to_complex::sptr ftc;
-//    gr::grand::opensl_sink::sptr snk;
-//    src = gr::analog::sig_source_f::make(48000, gr::analog::GR_COS_WAVE, 800, 0.3);
-//    probe = gr::fft::ctrlport_probe_psd::make("probe", "foo", 1024);
-//    ftc = gr::blocks::float_to_complex::make();
-//    snk = gr::grand::opensl_sink::make(48000);
-//
-//    tb->connect(src, 0, snk, 0);
-//    tb->connect(src, 0, ftc, 0);
-//    tb->connect(ftc, 0, probe, 0);
-
     GR_DEBUG("gnuradio", "constructed flowgraph");
 
     return nullptr;
@@ -140,7 +127,7 @@ JNIEXPORT jobject JNICALL
 
 extern "C"
 JNIEXPORT jobject JNICALL
-        Java_org_gnuradio_fmrx_MainActivity_fgStart(JNIEnv * env, jobject thiz, jstring tmpName) {
+Java_net_bastibl_fmrx_MainActivity_fgStart(JNIEnv * env, jobject thiz, jstring tmpName) {
 
     const char *tmp_c;
     tmp_c = env->GetStringUTFChars(tmpName, NULL);
@@ -154,7 +141,7 @@ JNIEXPORT jobject JNICALL
 
 extern "C"
 JNIEXPORT jobject JNICALL
-        Java_org_gnuradio_fmrx_MainActivity_fgStop(JNIEnv * env, jobject thiz) {
+Java_net_bastibl_fmrx_MainActivity_fgStop(JNIEnv * env, jobject thiz) {
     tb->stop();
     tb->wait();
 
@@ -163,14 +150,14 @@ JNIEXPORT jobject JNICALL
 
 extern "C"
 JNIEXPORT jstring JNICALL
-        Java_org_gnuradio_fmrx_MainActivity_fgRep(JNIEnv * env, jobject thiz) {
+Java_net_bastibl_fmrx_MainActivity_fgRep(JNIEnv * env, jobject thiz) {
 
     return env->NewStringUTF(tb->edge_list().c_str());
 }
 
 extern "C"
 JNIEXPORT jstring JNICALL
-Java_org_gnuradio_fmrx_MainActivity_grConf(JNIEnv *env, jobject thiz) {
+Java_net_bastibl_fmrx_MainActivity_grConf(JNIEnv *env, jobject thiz) {
 
     std::string ver = gr::version();
     std::string cCompiler = gr::c_compiler();
